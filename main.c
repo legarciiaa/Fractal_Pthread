@@ -124,13 +124,13 @@ void deleteQueue(struct BagTask *bag, struct Node *task){
           		previous = current;
           		current = current->next;
         	}
+        }
  
-	      	//found a match, update the link
-    		if(current == task) {
-        		bag->first = bag->first->next;
-       		} else {
-         		previous->next = current->next;
-       		}
+      	//found a match, update the link
+		if(current == task) {
+    		bag->first = bag->first->next;
+   		} else {
+     		previous->next = current->next;
    		}
    }
 }
