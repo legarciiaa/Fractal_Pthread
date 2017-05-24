@@ -138,7 +138,7 @@ void deleteQueue(struct BagTask *bag, struct Node *task){
 int main(int argc, char *argv[]) {
     int nThreads = atoi(argv[1]);
     int nColor = atoi(argv[2]);
-    int size = atoi(argv[3]); //fractal size total
+    size = atoi(argv[3]); //fractal size total
 
     if (size > 20){
         //add tasks
