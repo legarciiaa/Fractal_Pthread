@@ -75,7 +75,6 @@ void workFractal(){
 void drawFractal(){
     //Draw fractal (search lib to draw)
     //use while() (exemplo righi)
-
 }
 
 void insertWork(int size){
@@ -90,7 +89,7 @@ void insertWork(int size){
        fractal[count].xmin=i;
        fractal[count].ymin=i;
 
-       if (size < i+20){
+       if (size > i+20){
            i=i+20;
            size = size-20;
        }else{
@@ -117,27 +116,29 @@ void deleteQueue(struct BagTask *bag, struct Node *task){
    struct Node* previous = NULL;
 
    if(bag->first != NULL) {
-      //navigate through list
-      while(current != task) {
-        if(current->next == NULL) {
-           return;
-        } else {
-          previous = current;
-          current = current->next;
-        }
-     }
-      //found a match, update the link
-      if(current == task) {
-         bag->first = bag->first->next;
-       } else {
-         previous->next = current->next;
-       }
+    	//navigate through list
+    	while(current != task) {
+        	if(current->next == NULL) {
+           		return;
+        	} else {
+          		previous = current;
+          		current = current->next;
+        	}
+ 
+	      	//found a match, update the link
+    		if(current == task) {
+        		bag->first = bag->first->next;
+       		} else {
+         		previous->next = current->next;
+       		}
+   		}
+   }
 }
 
 int main(int argc, char *argv[]) {
     int nThreads = atoi(argv[1]);
     int nColor = atoi(argv[2]);
-    size= atoi(argv[3]); //fractal size total
+    int size = atoi(argv[3]); //fractal size total
 
     if (size > 20){
         //add tasks
@@ -150,5 +151,4 @@ int main(int argc, char *argv[]) {
         drawFractal(nThreads);
     }
     return 0;
-  }
 }
