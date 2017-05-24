@@ -1,6 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <math.h>
-#include <stdlib.h>
 
 //queue to bag of task
 struct Node{
@@ -23,13 +24,51 @@ struct FractalIndex{
 //start the list
 struct BagTask *work= NULL;
 struct BagTask *result = NULL;
+int size= 0;
+int max_iter = 100;
 
+void mandelbrot(double x1, double y1, double x2, double y2)
+{
+   //http://libxbgi.sourceforge.net/mandelbrot.c
+   //http://www.codewithc.com/how-to-include-graphics-h-in-codeblocks/
+   /*int xx, yy, counter;
+   double dx, dy, x, y, a, b, tx, d;
+   int maxx, maxy = size;
+
+   dx = (x2 - x1) / maxx;
+   dy = (y2 - y1) / maxy;
+
+   x = x1;
+   for (xx = 0; xx < maxx; xx++) {
+    y = y1;
+    for (yy = 0; yy < maxy; yy++) {
+      counter = 0;
+      a = b = 0.0;
+      do {
+         tx = a*a - b*b + x;
+         b = 2*b*a + y;
+	     a = tx;
+         d = a*a + b*b;
+	     counter++;
+      } while (d <= 4.0 && counter < max_iter);
+      setrgbcolor(counter);
+      _putpixel (xx, yy);
+      y += dy;
+    }
+    x += dx;
+  }*/
+}
 
 void workFractal(){
     //https://gist.github.com/andrejbauer/7919569
     //Thread consumer, work in fractal and remove task in queue
-
+    struct Node *node=NULL;
     //use while() (exemplo righi)
+    while(work->first != NULL){
+      node = work->first;
+      deleteQueue(work,node);
+      mandelbrot(node->index->xmin,node->index->ymin,node->index->xmax,node->index->ymax);
+    }
 
 }
 
@@ -81,7 +120,7 @@ void deleteQueue(struct BagTask *bag, struct Node *task){
       //navigate through list
       while(current != task) {
         if(current->next == NULL) {
-           return NULL;
+           return;
         } else {
           previous = current;
           current = current->next;
@@ -93,14 +132,12 @@ void deleteQueue(struct BagTask *bag, struct Node *task){
        } else {
          previous->next = current->next;
        }
-
-   return current;
 }
 
 int main(int argc, char *argv[]) {
-    int nColor = atoi(argv[1]);
-    int nThreads = atoi(argv[2]);
-    int size= atoi(argv[3]); //fractal size total
+    int nThreads = atoi(argv[1]);
+    int nColor = atoi(argv[2]);
+    size= atoi(argv[3]); //fractal size total
 
     if (size > 20){
         //add tasks
@@ -113,4 +150,5 @@ int main(int argc, char *argv[]) {
         drawFractal(nThreads);
     }
     return 0;
+  }
 }
