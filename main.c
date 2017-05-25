@@ -81,15 +81,17 @@ void insertWork(int size){
     //https://www.tutorialspoint.com/data_structures_algorithms/linked_list_program_in_c.htm --LINKED LIST
     int i=0;
     int count=0;
-    struct Node *node=NULL;
-    struct FractalIndex *fractal=NULL;
+    struct FractalIndex fractal[size/20];
+    struct Node node[size/20];
 
     //add to list of task
+
     while (size > 0 ){
+       printf("\nCreate work: %d \nSIZE: %d",count,size);
        fractal[count].xmin=i;
        fractal[count].ymin=i;
 
-       if (size > i+20){
+       if ((size-1) > i){
            i=i+20;
            size = size-20;
        }else{
@@ -98,11 +100,13 @@ void insertWork(int size){
        }
        fractal[count].xmax=i;
        fractal[count].ymax=i;
-       node[count].index= &fractal[count];
+
+       node[count].index = &fractal[count];
 
        //FIFO order
-       if(work->first== NULL){
-          work->first= work->last= &node[count];
+       if(work == NULL){
+          work->first = &node[count];
+          work->last = &node[count];
        }else{
           work->last->next= &node[count];
        }
