@@ -58,8 +58,10 @@ void mandelbrot(void *fractal)
          d = a*a + b*b;
 	     counter++;
       } while (d <= 4.0 && counter < max_iter);
-      setrgbcolor(counter);
-      _putpixel (xx, yy);
+      index ->image[xx][yy] = counter;
+      printf("\nIMAGE: %d %d COUNTERT %d ", xx,yy,counter);
+       //setrgbcolor(counter);
+      //_putpixel (xx, yy);
       y += dy;
     }
     x += dx;
