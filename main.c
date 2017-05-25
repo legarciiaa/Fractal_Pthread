@@ -19,6 +19,7 @@ struct FractalIndex{
     double xmax;
     double ymin;
     double ymax;
+    int** image;
 };
 
 //start the list
@@ -27,11 +28,17 @@ struct BagTask *result = NULL;
 int size= 0;
 int max_iter = 100;
 
-void mandelbrot(double x1, double y1, double x2, double y2)
+void mandelbrot(void *fractal)
 {
    //http://libxbgi.sourceforge.net/mandelbrot.c
    //http://www.codewithc.com/how-to-include-graphics-h-in-codeblocks/
-   /*int xx, yy, counter;
+   /*
+   struct FractalIndex *index = fractal;
+   double x1 = index->xmin;
+   double y1 = index->ymin;
+   double x2 = index->xmax;
+   double y2 = index->ymax;
+   int xx, yy, counter;
    double dx, dy, x, y, a, b, tx, d;
    int maxx, maxy = size;
 
@@ -67,7 +74,7 @@ void workFractal(){
     while(work->first != NULL){
       node = work->first;
       deleteQueue(work,node);
-      mandelbrot(node->index->xmin,node->index->ymin,node->index->xmax,node->index->ymax);
+      mandelbrot(&node);
     }
 
 }
