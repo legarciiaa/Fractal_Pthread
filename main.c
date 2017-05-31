@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <math.h>
+#include <signal.h>
 
 struct FractalIndex{
     int xmin;
@@ -28,13 +29,15 @@ struct BagTask result;
 int size= 0;
 int max_iter = 100;
 static pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t condWork;
+static pthread_cond_t condResult;
 int taskSize = 20;
 
 void mandelbrot(void *fractal)
 {
    //http://libxbgi.sourceforge.net/mandelbrot.c
    //http://www.codewithc.com/how-to-include-graphics-h-in-codeblocks/
-   /*
+  /*
    struct Node *node= &work->first;
    struct FractalIndex *index = node->index;
    double x1 = index->xmin;
@@ -47,7 +50,7 @@ void mandelbrot(void *fractal)
    dx = (x2 - x1) / maxx;
    dy = (y2 - y1) / maxy;
    x = x1;
-   
+
    for (xx = 0; xx < maxx; xx++) {
     y = y1;
     for (yy = 0; yy < maxy; yy++) {
@@ -68,30 +71,38 @@ void mandelbrot(void *fractal)
     }
     x += dx;
   }
-  
-   //FIFO order --ARRUMAR
-   if(result== NULL){
-      result->first = &node;
-      result->last = &node;
-   }else{
-      result->last->next= &node;
-   }
-      
-  */
+
+   //FIFO order
+   if(result.first == NULL){
+      result.first = &node;
+      result.last = &node;
+	} else{
+	  result.last.next = &node;
+	  result.last = &node;
+	}
+	//wake up condition
+	pthread_cond_signal(&condResilt);
+ */
+
 }
 
 void workFractal(){
     //https://gist.github.com/andrejbauer/7919569
     //Thread consumer, work in fractal and remove task in queue
-    
+
+	//use while() (exemplo righi)
 	struct Node *node= work.first;
 
-    //use while() (exemplo righi)
-    while(node != NULL){
-      pthread_mutex_lock(&m);
-        deleteQueue(work,node);
-        mandelbrot(node);
-      pthread_mutex_lock(&m);
+    while(!condWork){
+        //wait for the condition
+        pthread_mutex_lock(&m);
+            pthread_cond_wait(&condWork, &m);
+            while(work.first != NULL){
+                deleteQueue(work,node);
+                mandelbrot(node);
+                node= work.first;
+              pthread_mutex_unlock(&m);
+            }
     }
 
 }
@@ -99,15 +110,18 @@ void workFractal(){
 void drawFractal(){
     //Draw fractal (search lib to draw)
     //use while() (exemplo righi)
-    
-    struct Node *node= result.first;
 
-    while(node != NULL){
-      pthread_mutex_lock(&m);
-        
-      pthread_mutex_lock(&m);
+   struct Node *node= result.first;
+   while(!condResult){
+        //wait for the condition
+        pthread_cond_wait(&condResult, &m);
+        while(result.first != NULL){
+           pthread_mutex_lock(&m);
+           //draw
+           node= result.first;
+           pthread_mutex_lock(&m);
+        }
     }
-    
 }
 
 void insertWork(){
@@ -130,7 +144,7 @@ void insertWork(){
            sizeTask = 0;
        }
        nextIndex++;
-       
+
        //only sets the index of the current node if this is the first one
        if(work.first == NULL){
        		node.index = fractal;
@@ -145,23 +159,26 @@ void insertWork(){
 			currentNode = &tempNode;
 			work.last = &tempNode;
 		}
-	
-		//This is just to test if it works, we can remove it	
+
+		//This is just to test if it works, we can remove it
 		printf("\nFirst work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->index.xmin, work.first->index.ymin, work.first->index.xmax, work.first->index.ymax);
 		if(work.first->next != NULL){
 			printf("\nSecond work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->next->index.xmin, work.first->next->index.ymin, work.first->next->index.xmax, work.first->next->index.ymax);
-		}	   	
+		}
+
+		//wake condition condWork
+		pthread_cond_signal(&condWork);
     }
 }
 
-void deleteQueue(struct BagTask *bag, struct Node *task){
+void deleteQueue(struct BagTask *bag, struct Node task){
     //start from the first link
    struct Node* current = bag->first;
    struct Node* previous = NULL;
 
-   if(bag->first != NULL) {
+   if(current != NULL) {
     	//navigate through list
-    	while(current != task) {
+    	while(&current != &task) {
         	if(current->next == NULL) {
            		return;
         	} else {
@@ -171,7 +188,7 @@ void deleteQueue(struct BagTask *bag, struct Node *task){
         }
 
       	//found a match, update the link
-		if(current == task) {
+		if(&current == &task) {
     		bag->first = bag->first->next;
    		} else {
      		previous->next = current->next;
