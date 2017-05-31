@@ -3,17 +3,6 @@
 #include <pthread.h>
 #include <math.h>
 
-//queue to bag of task
-struct Node{
-    struct FractalIndex *index;
-    struct Node *next;
-};
-
-struct BagTask{
-   struct Node *first;
-   struct Node *last;
-};
-
 struct FractalIndex{
     int xmin;
     int xmax;
@@ -22,12 +11,24 @@ struct FractalIndex{
     int** image;
 };
 
+//queue to bag of task
+struct Node{
+    struct FractalIndex index;
+    struct Node* next;
+};
+
+struct BagTask{
+   struct Node *first;
+   struct Node *last;
+};
+
 //start the list
-struct BagTask *work;
-struct BagTask *result;
+struct BagTask work;
+struct BagTask result;
 int size= 0;
 int max_iter = 100;
 static pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+int taskSize = 20;
 
 void mandelbrot(void *fractal)
 {
@@ -82,7 +83,8 @@ void mandelbrot(void *fractal)
 void workFractal(){
     //https://gist.github.com/andrejbauer/7919569
     //Thread consumer, work in fractal and remove task in queue
-    struct Node *node= &work->first;
+    
+	struct Node *node= work.first;
 
     //use while() (exemplo righi)
     while(node != NULL){
@@ -97,7 +99,8 @@ void workFractal(){
 void drawFractal(){
     //Draw fractal (search lib to draw)
     //use while() (exemplo righi)
-    struct Node *node= &result->first;
+    
+    struct Node *node= result.first;
 
     while(node != NULL){
       pthread_mutex_lock(&m);
@@ -108,37 +111,46 @@ void drawFractal(){
 }
 
 void insertWork(){
-    //https://www.tutorialspoint.com/data_structures_algorithms/linked_list_program_in_c.htm --LINKED LIST
-    int i=0;
+    int nextIndex=0;
     int sizeTask=size;
-    struct FractalIndex fractal= {0,0,0,0};;
+    struct FractalIndex fractal= {0,0,0,0};
     struct Node node;
+    struct Node *currentNode;
 
-    //add to list of task
+    //add work to list of tasks and remove from original size
     while (sizeTask > 0 ){
-       printf("\nCreate SIZE: %d I: %d",sizeTask,i);
-       fractal.xmin=fractal.ymin=i;
+       printf("\nCreate job. Updated original size: %d Next index: %d",sizeTask,nextIndex);
+       fractal.xmin=fractal.ymin=nextIndex;
 
        if (sizeTask > 0){
-           fractal.xmax=fractal.ymax=i=i+19;
-           sizeTask = sizeTask-20;
+           fractal.xmax=fractal.ymax=nextIndex=nextIndex+(taskSize-1);
+           sizeTask = sizeTask-taskSize;
        }else{
            fractal.xmax=fractal.ymax=sizeTask;
            sizeTask = 0;
        }
-       i++;
-
-       printf("\nminx: %d miny: %d nmaxx: %d maxy: %d ",fractal.xmin, fractal.ymin,fractal.xmax, fractal.ymax);
-
-       node.index = &fractal;
-       //FIFO order --ARRUMAR
-       /*if(work == NULL){
-          work->first = &node;
-          work->last = &node;
-       }else{
-          work->last->next= &node;
-       }*/
-
+       nextIndex++;
+       
+       //only sets the index of the current node if this is the first one
+       if(work.first == NULL){
+       		node.index = fractal;
+       		work.first = &node;
+       		currentNode = &node;
+       		work.last = &node;
+		} else{
+			//sets the next node as the newly calculated index
+			struct Node tempNode;
+			tempNode.index = fractal;
+			currentNode->next = &tempNode;
+			currentNode = &tempNode;
+			work.last = &tempNode;
+		}
+	
+		//This is just to test if it works, we can remove it	
+		printf("\nFirst work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->index.xmin, work.first->index.ymin, work.first->index.xmax, work.first->index.ymax);
+		if(work.first->next != NULL){
+			printf("\nSecond work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->next->index.xmin, work.first->next->index.ymin, work.first->next->index.xmax, work.first->next->index.ymax);
+		}	   	
     }
 }
 
@@ -175,9 +187,9 @@ int main(int argc, char *argv[]) {
     int threadCounter;
     pthread_t threadId[nThreads];
 
-
-    if (size > 20){
-        //add tasks
+	//if the total size of the fractal is bigger than the bucket size can perform the algorithm
+    if (size > taskSize){
+        //separate image in tasks and add them to bucket
         insertWork();
 
         //create the threads to work and draw
