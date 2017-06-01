@@ -128,53 +128,58 @@ void drawFractal(){
     }
 }
 
-void insertWork(){
-    int nextIndex=0;
+void insertWork(){int nextIndex=0;
     int sizeTask=size;
-    struct FractalIndex fractal= {0,0,0,0};
     struct Node node;
     struct Node *currentNode;
+    struct FractalIndex *fractal= (struct FractalIndex*)(malloc(sizeof(struct FractalIndex)));
+    int i=0;
 
     //add work to list of tasks and remove from original size
     while (sizeTask > 0 ){
        printf("\nCreate job. Updated original size: %d Next index: %d",sizeTask,nextIndex);
-       fractal.xmin=fractal.ymin=nextIndex;
+       fractal[i].xmin=fractal[i].ymin=nextIndex;
 
        if (sizeTask > 0){
-           fractal.xmax=fractal.ymax=nextIndex=nextIndex+(taskSize-1);
+           fractal[i].xmax=fractal[i].ymax=nextIndex=nextIndex+(taskSize-1);
            sizeTask = sizeTask-taskSize;
        }else{
-           fractal.xmax=fractal.ymax=sizeTask;
+           fractal[i].xmax=fractal[i].ymax=sizeTask;
            sizeTask = 0;
        }
        nextIndex++;
+       i++;
 
        //only sets the index of the current node if this is the first one
+       //printf("\nFRACTAL: Min x: %d Min y: %d Max x: %d Max y: %d", fractal.xmin, fractal.ymin, fractal.xmax, fractal.ymax);
+
        if(work.first == NULL){
-       		node.index = fractal;
+            node.index = fractal[i];
        		work.first = &node;
        		currentNode = &node;
        		work.last = &node;
 		} else{
 			//sets the next node as the newly calculated index
 			struct Node tempNode;
-			tempNode.index = fractal;
+			tempNode.index = fractal[i];
 			currentNode->next = &tempNode;
 			currentNode = &tempNode;
 			work.last = &tempNode;
 		}
 
 		//This is just to test if it works, we can remove it
-		printf("\nFirst work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->index.xmin, work.first->index.ymin, work.first->index.xmax, work.first->index.ymax);
-		if(work.first->next != NULL){
-			printf("\nSecond work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->next->index.xmin, work.first->next->index.ymin, work.first->next->index.xmax, work.first->next->index.ymax);
-		}
+		//printf("\nFirst work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->index.xmin, work.first->index.ymin, work.first->index.xmax, work.first->index.ymax);
+		//if(work.first->next != NULL){
+		//	printf("\nSecond work: Min x: %d Min y: %d Max x: %d Max y: %d", work.first->next->index.xmin, work.first->next->index.ymin, work.first->next->index.xmax, work.first->next->index.ymax);
+		//}
+
+         printf("\nFIRST: Min x: %d Min y: %d Max x: %d Max y: %d",  &work.first->index.xmin,  &work.first->index.ymin,  &work.first->index.xmax,  &work.first->index.ymax);
 
 		//wake condition condWork
+		printf("\nWake up condition work");
 		pthread_cond_signal(&condWork);
     }
 }
-
 
 void deleteQueue(struct BagTask *bag, struct Node task){
     //start from the first link
