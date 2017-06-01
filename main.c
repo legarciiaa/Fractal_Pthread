@@ -98,9 +98,13 @@ void workFractal(){
         pthread_mutex_lock(&m);
             pthread_cond_wait(&condWork, &m);
             while(work.first != NULL){
-                deleteQueue(work,node);
+                printf("\nWORKING IN: Min x: %d Min y: %d Max x: %d Max y: %d", node->index.xmin, node->index.ymin, node->index.xmax, node->index.ymax);
+                printf("\NEXT IN: Min x: %d Min y: %d Max x: %d Max y: %d", node->next->index.xmin, node->next->index.ymin, node->next->index.xmax, node->next->index.ymax);
+		'------	 VERIFICAR NEXT N ESTA CERTO...LOOP 
+                //deleteQueue(work,node);
                 mandelbrot(node);
-                node= work.first;
+                node = work.first = &node->next;
+                //node= work.first;
               pthread_mutex_unlock(&m);
             }
     }
@@ -170,7 +174,7 @@ void insertWork(){
 		pthread_cond_signal(&condWork);
     }
 }
-
+/*
 void deleteQueue(struct BagTask *bag, struct Node task){
     //start from the first link
    struct Node* current = bag->first;
@@ -194,7 +198,7 @@ void deleteQueue(struct BagTask *bag, struct Node task){
      		previous->next = current->next;
    		}
    }
-}
+}*/
 
 int main(int argc, char *argv[]) {
     int nThreads = atoi(argv[1]);
