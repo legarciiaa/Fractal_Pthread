@@ -174,6 +174,7 @@ void insertWork(){
 		pthread_cond_signal(&condWork);
     }
 }
+
 /*
 void deleteQueue(struct BagTask *bag, struct Node task){
     //start from the first link
