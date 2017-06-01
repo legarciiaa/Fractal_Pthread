@@ -178,7 +178,7 @@ void insertWork(){
 
 void deleteQueue(struct BagTask *bag, struct Node task){
     //start from the first link
-/*   struct Node* current = bag->first;
+   struct Node* current = bag->first;
    struct Node* previous = NULL;
 
    if(current != NULL) {
@@ -198,7 +198,7 @@ void deleteQueue(struct BagTask *bag, struct Node task){
    		} else {
      		previous->next = current->next;
    		}
-   }*/
+   }
 }
 
 int main(int argc, char *argv[]) {
